@@ -42,6 +42,10 @@ class AppointmentController extends Controller
             'scheduled_at' => 'required|date',
             'notes' => 'nullable|string',
         ]);
+
+        $request->user()->patient->appointments()->create($validated + ['status' => 'pending']);
+
+        return redirect()->route('appointments.index');
     }
 
     /**
@@ -63,9 +67,22 @@ class AppointmentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Appointment $appointment)
     {
-        //
+        $this->authorizeAppointment($appointment, $request);
+
+        $validated = $request->validate([
+
+            'doctor_name'   => 'required|string|max:255',
+            'department'    => 'nullable|string|max:255',
+            'scheduled_at'  => 'required|date',
+            'status'        => 'required|in:pending,confirmed,completed,cancelled',
+            'notes'         => 'nullable|string',
+        ]);
+
+        $appointment->update($validated);
+
+        return redirect()->route('appointments.index');
     }
 
     /**
