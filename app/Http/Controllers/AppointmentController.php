@@ -28,7 +28,7 @@ class AppointmentController extends Controller
      */
     public function create()
     {
-        //
+        return view('appointment.create');
     }
 
     /**
@@ -51,17 +51,22 @@ class AppointmentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, Appointment $appointment)
     {
-        //
+        $this->authorizeAppointment($appointment, $request);
+
+        return view('appointments.show', compact('appointment'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request, Appointment $appointment)
     {
-        //
+        $this->authorizeAppointment($appointment, $request);
+
+
+        return view('appointments.edit', compact('appointment'));
     }
 
     /**
@@ -88,8 +93,17 @@ class AppointmentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, Appointment $appointment)
     {
-        //
+        $this->authorizeAppointment($appointment, $request);
+
+        $appointment->delete();
+
+        return redirect()->route('appointments.index');
+    }
+
+    private function authorizeAppointment(Appointment $appointment, Request $request)
+    {
+        abort_unless($appointment->patient_id === $request->user()->patient->id, 403);
     }
 }

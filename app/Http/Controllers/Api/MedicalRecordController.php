@@ -1,20 +1,19 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use App\Models\MedicalRecord;
+use Illuminate\Http\Request;
 
 class MedicalRecordController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
-        $records = $request->user()->patient->medicalRecords()->latest('recorded_at')->get();
-
-        return view('medical-record.index', compact('records'));
+        //
     }
 
     /**
@@ -36,17 +35,15 @@ class MedicalRecordController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, MedicalRecord $medicalRecord)
+    public function show(MedicalRecord $medicalRecord)
     {
-        abort_unless($medicalRecord->patient_id === $request->user()->patient->id, 403);
-
-        return view('medical-records.show', compact('medicalRecord'));
+        //
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(MedicalRecord $medicalRecord)
     {
         //
     }
@@ -54,7 +51,7 @@ class MedicalRecordController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, MedicalRecord $medicalRecord)
     {
         //
     }
@@ -62,7 +59,7 @@ class MedicalRecordController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(MedicalRecord $medicalRecord)
     {
         //
     }
