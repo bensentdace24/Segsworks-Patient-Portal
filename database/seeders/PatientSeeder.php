@@ -17,19 +17,17 @@ class PatientSeeder extends Seeder
     public function run(): void
     {
         $user = User::factory()->create([
-            'name' => 'John Doe',
-            'email' => 'john.doe@example.com',
+            'name' => 'Juan Dela Cruz',
+            'email' => 'juan@example.com',
         ]);
-
         Patient::create([
             'user_id' => $user->id,
-            'full_name' => 'John Doe',
-            'date_of_birth' => '1990-02-14',
+            'full_name' => 'Juan Dela Cruz',
+            'date_of_birth' => '1990-05-14',
             'gender' => 'Male',
-            'phone' => '0907-540-5541',
+            'phone' => '0917-000-0000',
             'address' => 'Davao City, Philippines',
-            'blood_type' => 'O+'
-
+            'blood_type' => 'O+',
         ]);
     }
 }
