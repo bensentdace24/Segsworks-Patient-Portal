@@ -8,7 +8,7 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
+    //use WithoutModelEvents;
 
     /**
      * Seed the application's database.
@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
         $this->call([
+            StaffSeeder::class,
             PatientSeeder::class,
             AppointmentSeeder::class,
             MedicalRecordSeeder::class

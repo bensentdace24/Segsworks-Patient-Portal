@@ -9,22 +9,44 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Patient extends Model
 {
     protected $fillable = [
-        'user_id',
+        'created_by',
         'full_name',
         'date_of_birth',
         'gender',
         'phone',
         'address',
-        'blood_type'
+        'blood_type',
     ];
 
     protected $casts = [
         'date_of_birth' => 'date',
     ];
 
-    public function user(): BelongsTo
+    protected static function boot()
     {
-        return $this->belongsTo(User::class);
+        parent::boot();
+
+        static::creating(function (Patient $patient) {
+            $patient->phn = self::generatePhn();
+        });
+    }
+
+    public static function generatePhn(): string
+    {
+        $year = now()->year;
+        $count = self::whereYear('created_at', $year)->count() + 1;
+
+        return sprintf('PHN-%d-%06d', $year, $count);
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function cases(): HasMany
+    {
+        return $this->hasMany(PatientCase::class);
     }
 
     public function appointments(): HasMany

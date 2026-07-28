@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        #database structure for patients table
         Schema::create('patients', function (Blueprint $table) {
             $table->id();
-            $table->foreignID('user_id')->constrained()->cascadeOnDelete();
+            $table->string('phn')->unique();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('full_name');
             $table->date('date_of_birth');
-            $table->string('gender');
+            $table->string('gender')->nullable();
             $table->string('phone')->nullable();
-            $table->string('address')->nullable();
+            $table->text('address')->nullable();
             $table->string('blood_type')->nullable();
             $table->timestamps();
         });
