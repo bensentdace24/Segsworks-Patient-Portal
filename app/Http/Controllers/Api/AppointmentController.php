@@ -13,9 +13,14 @@ class AppointmentController extends Controller
      */
     public function index(Request $request)
     {
-        return response()->json(
-            $request->user()->patient->appointments()->latest('scheduled_at')->get()
-        );
+        $query = \App\Models\Appointment::query();
+
+
+        if ($patientId = $request->query('patient_id')) {
+            $query->where('patient_id', $patientId);
+        }
+
+        return response()->json($query->latest('scheduled_at')->get());
     }
 
     /**
@@ -32,13 +37,14 @@ class AppointmentController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'patient_id'   => 'required|exists:patients,id',
             'doctor_name'  => 'required|string|max:255',
             'department'   => 'nullable|string|max:255',
             'scheduled_at' => 'required|date',
             'notes'        => 'nullable|string',
         ]);
-        $appointment = $request->user()->patient->appointments()
-            ->create($validated + ['status' => 'pending']);
+        $appointment = \App\Models\Appointment::create($validated + ['status' => 'pending']);
+
 
         return response()->json($appointment, 201);
     }

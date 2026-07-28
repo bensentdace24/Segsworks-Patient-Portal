@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\MedicalRecordController;
 use App\Http\Controllers\Api\DoctorController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\PatientController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -17,4 +18,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('appointments', AppointmentController::class);
     Route::apiResource('medical-records', MedicalRecordController::class)->only(['index', 'show']);
     Route::get('/doctors', [DoctorController::class, 'index']);
+
+    #patient route
+    Route::apiResource('patients', PatientController::class)->only(['index', 'store', 'show']);
 });
