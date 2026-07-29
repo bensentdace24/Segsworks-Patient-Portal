@@ -31,6 +31,13 @@ class User extends Authenticatable
         ];
     }
 
+    #doctors apppointment
+    public function doctorAppointments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Appointment::class, 'doctor_id');
+    }
+
+
     public function patient()
     {
         return $this->hasOne(Patient::class);

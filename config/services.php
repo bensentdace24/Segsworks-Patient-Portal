@@ -34,5 +34,9 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'segworks_doctor_api' => [
+        'user' => env('SEGWORKS_DOCTOR_API_USER'),
+        'pass' => env('SEGWORKS_DOCTOR_API_PASS'),
+    ],
 
 ];

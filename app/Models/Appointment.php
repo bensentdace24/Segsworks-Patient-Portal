@@ -23,6 +23,12 @@ class Appointment extends Model
         'scheduled_at' => 'datetime',
     ];
 
+    #Doctors relationship
+    public function doctor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'doctor_id');
+    }
+
     public function patient(): BelongsTo
     {
         return $this->belongsTo(Patient::class);

@@ -21,4 +21,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     #patient route
     Route::apiResource('patients', PatientController::class)->only(['index', 'store', 'show']);
+
+    #doctors-ppicker endpoint
+    Route::get('/doctors-list', function () {
+        return response()->json(
+            \App\Models\User::where('role', 'doctor')->get(['id', 'name'])
+        );
+    });
 });

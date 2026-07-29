@@ -16,6 +16,12 @@ class StaffSeeder extends Seeder
         User::factory()->create([
             'name' => 'Dr. Ana Reyes',
             'email' => 'staff@example.com',
+            'role' => 'receptionist', // was 'doctor' — this one's now front-desk
+        ]);
+
+        User::factory()->create([
+            'name' => 'Dr. Marco Villanueva',
+            'email' => 'doctor@example.com',
             'role' => 'doctor',
         ]);
     }
