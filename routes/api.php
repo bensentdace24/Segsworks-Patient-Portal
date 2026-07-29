@@ -20,7 +20,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/doctors', [DoctorController::class, 'index']);
 
     #patient route
-    Route::apiResource('patients', PatientController::class)->only(['index', 'store', 'show']);
+    Route::apiResource('patients', PatientController::class)->only(['index', 'store', 'show', 'update']);
+
+
 
     #doctors-ppicker endpoint
     Route::get('/doctors-list', function () {

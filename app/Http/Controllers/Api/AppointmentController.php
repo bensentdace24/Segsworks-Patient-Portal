@@ -10,7 +10,7 @@ class AppointmentController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Appointment::with(['patient', 'doctor']);
+        $query = Appointment::with('patient');
 
         if ($patientId = $request->query('patient_id')) {
             $query->where('patient_id', $patientId);
@@ -28,7 +28,7 @@ class AppointmentController extends Controller
     {
         $validated = $request->validate([
             'patient_id'   => 'required|exists:patients,id',
-            'doctor_id'    => 'nullable|exists:users,id',
+            'doctor_name'  => 'nullable|string|max:255',
             'department'   => 'nullable|string|max:255',
             'scheduled_at' => 'required|date',
             'notes'        => 'nullable|string',
@@ -36,7 +36,7 @@ class AppointmentController extends Controller
 
         $appointment = Appointment::create($validated + ['status' => 'pending']);
 
-        return response()->json($appointment->load(['patient', 'doctor']), 201);
+        return response()->json($appointment->load('patient'), 201);
     }
 
     public function show(Appointment $appointment)
@@ -52,7 +52,7 @@ class AppointmentController extends Controller
     public function update(Request $request, Appointment $appointment)
     {
         $validated = $request->validate([
-            'doctor_id'    => 'nullable|exists:users,id',
+            'doctor_name'  => 'nullable|string|max:255',
             'department'   => 'nullable|string|max:255',
             'scheduled_at' => 'required|date',
             'status'       => 'required|in:pending,confirmed,completed,cancelled',
@@ -61,9 +61,8 @@ class AppointmentController extends Controller
 
         $appointment->update($validated);
 
-        return response()->json($appointment->load(['patient', 'doctor']));
+        return response()->json($appointment->load('patient'));
     }
-
     public function destroy(Appointment $appointment)
     {
         $appointment->delete();

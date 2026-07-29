@@ -71,7 +71,18 @@ class PatientController extends Controller
      */
     public function update(Request $request, Patient $patient)
     {
-        //
+        $validated = $request->validate([
+            'full_name'     => 'required|string|max:255',
+            'date_of_birth' => 'required|date',
+            'gender'        => 'nullable|string',
+            'phone'         => 'nullable|string',
+            'address'       => 'nullable|string',
+            'blood_type'    => 'nullable|string',
+        ]);
+
+        $patient->update($validated);
+
+        return response()->json($patient);
     }
 
     /**
