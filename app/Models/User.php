@@ -42,4 +42,17 @@ class User extends Authenticatable
     {
         return $this->hasOne(Patient::class);
     }
+
+
+    #schedule of the doctor
+    public function schedules(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(DoctorSchedule::class, 'doctor_id');
+    }
+
+    #doctors timeout
+    public function timeOff(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(DoctorTimeOff::class, 'doctor_id');
+    }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Patient;
 use Illuminate\Http\Request;
+use App\Http\Requests\StorePatientRequest;
 
 class PatientController extends Controller
 {
@@ -33,23 +34,14 @@ class PatientController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StorePatientRequest $request)
     {
-        $validated = $request->validate([
-            'full_name'     => 'required|string|max:255',
-            'date_of_birth' => 'required|date',
-            'gender'        => 'nullable|string',
-            'phone'         => 'nullable|string',
-            'address'       => 'nullable|string',
-            'blood_type'    => 'nullable|string',
-        ]);
+        $this->authorize('create', Patient::class);
 
-        $patient = Patient::create($validated + ['created_by' => $request->user()->id]);
-
+        $patient = Patient::create($request->validated() + ['created_by' => $request->user()->id]);
 
         return response()->json($patient, 201);
     }
-
     /**
      * Display the specified resource.
      */

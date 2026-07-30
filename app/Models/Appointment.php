@@ -5,19 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-
 class Appointment extends Model
 {
-    protected $fillable =
-    [
+    protected $fillable = [
         'patient_id',
-        'doctor_name',
+        'doctor_id',
         'department',
         'scheduled_at',
         'status',
-        'notes'
+        'notes',
     ];
-
 
     protected $casts = [
         'scheduled_at' => 'datetime',

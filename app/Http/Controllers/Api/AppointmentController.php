@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreAppointmentRequest;
+use App\Http\Requests\UpdateAppointmentRequest;
+
 
 class AppointmentController extends Controller
 {
@@ -24,19 +27,13 @@ class AppointmentController extends Controller
         //
     }
 
-    public function store(Request $request)
+    public function store(StoreAppointmentRequest $request)
     {
-        $validated = $request->validate([
-            'patient_id'   => 'required|exists:patients,id',
-            'doctor_name'  => 'nullable|string|max:255',
-            'department'   => 'nullable|string|max:255',
-            'scheduled_at' => 'required|date',
-            'notes'        => 'nullable|string',
-        ]);
+        $this->authorize('create', Appointment::class);
 
-        $appointment = Appointment::create($validated + ['status' => 'pending']);
+        $appointment = Appointment::create($request->validated() + ['status' => 'pending']);
 
-        return response()->json($appointment->load('patient'), 201);
+        return response()->json($appointment->load(['patient', 'doctor']), 201);
     }
 
     public function show(Appointment $appointment)
@@ -49,19 +46,14 @@ class AppointmentController extends Controller
         //
     }
 
-    public function update(Request $request, Appointment $appointment)
+
+    public function update(UpdateAppointmentRequest $request, Appointment $appointment)
     {
-        $validated = $request->validate([
-            'doctor_name'  => 'nullable|string|max:255',
-            'department'   => 'nullable|string|max:255',
-            'scheduled_at' => 'required|date',
-            'status'       => 'required|in:pending,confirmed,completed,cancelled',
-            'notes'        => 'nullable|string',
-        ]);
+        $this->authorize('update', $appointment);
 
-        $appointment->update($validated);
+        $appointment->update($request->validated());
 
-        return response()->json($appointment->load('patient'));
+        return response()->json($appointment->load(['patient', 'doctor']));
     }
     public function destroy(Appointment $appointment)
     {
