@@ -49,9 +49,9 @@ class Patient extends Model
         return $this->hasMany(PatientCase::class);
     }
 
-    public function appointment(): BelongsTo
+    public function appointments(): HasMany
     {
-        return $this->belongsTo(Appointment::class);
+        return $this->hasMany(Appointment::class);
     }
 
     public function medicalRecords(): HasMany

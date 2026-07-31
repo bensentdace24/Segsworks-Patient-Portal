@@ -9,7 +9,19 @@ class PatientCase extends Model
 {
     protected $table = 'cases';
 
-    protected $fillable = ['patient_id', 'opened_by', 'status', 'notes'];
+    protected $fillable = [
+        'patient_id',
+        'appointment_id',
+        'opened_by',
+        'completed_by',
+        'status',
+        'notes',
+        'diagnosis',
+        'consultation_notes',
+        'prescription',
+        'treatment_plan',
+        'follow_up_instructions',
+    ];
 
     protected static function boot()
     {
