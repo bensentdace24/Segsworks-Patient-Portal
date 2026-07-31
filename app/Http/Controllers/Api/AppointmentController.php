@@ -31,9 +31,16 @@ class AppointmentController extends Controller
     {
         $this->authorize('create', Appointment::class);
 
-        $appointment = Appointment::create($request->validated() + ['status' => 'pending']);
+        $appointment = Appointment::create($request->validated() + [
+            'status' => 'pending',
+            'created_by' => $request->user()->id, // audit trail: which nurse booked it
+        ]);
 
-        return response()->json($appointment->load(['patient', 'doctor']), 201);
+        #tthis needs created_by added to appointment to add enew column
+        $appointment->encounter()->create([
+            'patient_id' => $appointment->patient_id,
+            'opened_by' => $request->user()->id,
+        ]);
     }
 
     public function show(Appointment $appointment)

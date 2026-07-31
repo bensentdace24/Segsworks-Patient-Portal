@@ -45,9 +45,17 @@ class PatientController extends Controller
     /**
      * Display the specified resource.
      */
+    // PatientController@show — add eager loading
     public function show(Patient $patient)
     {
-        return response()->json($patient->load(['appointments', 'medicalRecords']));
+        return response()->json(
+            $patient->load([
+                'appointments.doctor',
+                'appointments.encounter',
+                'medicalRecords',
+                'createdBy:id,name',
+            ])
+        );
     }
 
     /**
