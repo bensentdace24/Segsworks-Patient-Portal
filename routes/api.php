@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\MedicalRecordController;
 use App\Http\Controllers\Api\DoctorController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\PatientController;
+use App\Http\Controllers\Api\ConsultationController;
+
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -30,4 +32,9 @@ Route::middleware('auth:sanctum')->group(function () {
             \App\Models\User::where('role', 'doctor')->get(['id', 'name'])
         );
     });
+
+    Route::post(
+        '/appointments/{appointment}/consult',
+        [ConsultationController::class, 'store']
+    );
 });

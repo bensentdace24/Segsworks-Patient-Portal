@@ -37,7 +37,7 @@ class AppointmentController extends Controller
         ]);
 
         #tthis needs created_by added to appointment to add enew column
-        $appointment->encounter()->create([
+        $appointment->patientCase()->create([
             'patient_id' => $appointment->patient_id,
             'opened_by' => $request->user()->id,
         ]);
