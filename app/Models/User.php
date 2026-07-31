@@ -55,4 +55,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(DoctorTimeOff::class, 'doctor_id');
     }
+
+    #created patients receptionist og admin
+    public function createdPatients()
+    {
+        return $this->hasMany(Patient::class, 'created_by');
+    }
 }

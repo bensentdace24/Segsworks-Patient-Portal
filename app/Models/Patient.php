@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Patient extends Model
 {
@@ -62,5 +63,16 @@ class Patient extends Model
     public function completedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'completed_by');
+    }
+
+    public function patientCase(): HasOne
+    {
+        return $this->hasOne(PatientCase::class, 'appointment_id');
+    }
+
+
+    public function createdPatients(): HasMany
+    {
+        return $this->hasMany(Patient::class, 'created_by');
     }
 }

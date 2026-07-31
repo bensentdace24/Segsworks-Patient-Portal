@@ -51,7 +51,7 @@ class PatientController extends Controller
         return response()->json(
             $patient->load([
                 'appointments.doctor',
-                'appointments.encounter',
+                'appointments.patientCase',
                 'medicalRecords',
                 'createdBy:id,name',
             ])

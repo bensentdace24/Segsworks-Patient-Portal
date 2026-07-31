@@ -49,4 +49,16 @@ class PatientCase extends Model
     {
         return $this->belongsTo(User::class, 'opened_by');
     }
+
+
+    #this is for appointmentt
+    public function appointment(): BelongsTo
+    {
+        return $this->belongsTo(Appointment::class);
+    }
+
+    public function completedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'completed_by');
+    }
 }

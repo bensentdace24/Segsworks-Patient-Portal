@@ -23,9 +23,9 @@ class Appointment extends Model
     ];
 
     // Appointment.php — add
-    public function encounter(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function patientCase()
     {
-        return $this->hasOne(PatientCase::class);
+        return $this->hasOne(PatientCase::class, 'appointment_id');
     }
 
     #Doctors relationship
@@ -37,5 +37,11 @@ class Appointment extends Model
     public function patient(): BelongsTo
     {
         return $this->belongsTo(Patient::class);
+    }
+
+    #to see kinsa ang nag buhat sa appointment
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }
