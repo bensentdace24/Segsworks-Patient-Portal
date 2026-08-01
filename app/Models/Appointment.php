@@ -9,13 +9,11 @@ class Appointment extends Model
 {
     protected $fillable = [
         'patient_id',
-        'doctor_id',
-        'created_by',
+        'doctor_name',
         'department',
         'scheduled_at',
         'status',
         'notes',
-
     ];
 
     protected $casts = [
