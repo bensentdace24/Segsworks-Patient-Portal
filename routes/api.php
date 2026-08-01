@@ -15,26 +15,36 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
-
     Route::get('/dashboard', [DashboardController::class, 'index']);
-    Route::apiResource('appointments', AppointmentController::class);
-    Route::apiResource('medical-records', MedicalRecordController::class)->only(['index', 'show']);
-    Route::get('/doctors', [DoctorController::class, 'index']);
 
-    #patient route
-    Route::apiResource('patients', PatientController::class)->only(['index', 'store', 'show', 'update']);
+    Route::middleware('role:receptionist,admin')->group(function () {
+        Route::post('/patients', [PatientController::class, 'store']);
+        Route::put('/patients/{patient}', [PatientController::class, 'update']);
 
+        Route::post('/appointments', [AppointmentController::class, 'store']);
+        Route::put('/appointments/{appointment}', [AppointmentController::class, 'update']);
+        Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy']);
+    });
 
-
-    #doctors-ppicker endpoint
-    Route::get('/doctors-list', function () {
-        return response()->json(
-            \App\Models\User::where('role', 'doctor')->get(['id', 'name'])
+    Route::middleware('role:doctor')->group(function () {
+        Route::post(
+            '/appointments/{appointment}/consult',
+            [ConsultationController::class, 'store']
         );
     });
 
-    Route::post(
-        '/appointments/{appointment}/consult',
-        [ConsultationController::class, 'store']
-    );
+    Route::middleware('role:doctor,nurse,admin')->group(function () {
+        Route::get('/medical-records', [MedicalRecordController::class, 'index']);
+        Route::get('/medical-records/{medicalRecord}', [MedicalRecordController::class, 'show']);
+    });
+
+    Route::middleware('role:receptionist,doctor,nurse,admin')->group(function () {
+        Route::get('/patients', [PatientController::class, 'index']);
+        Route::get('/patients/{patient}', [PatientController::class, 'show']);
+
+        Route::get('/appointments', [AppointmentController::class, 'index']);
+        Route::get('/appointments/{appointment}', [AppointmentController::class, 'show']);
+
+        Route::get('/doctors', [DoctorController::class, 'index']);
+    });
 });

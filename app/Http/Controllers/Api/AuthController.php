@@ -35,8 +35,10 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        #this actually revoke the Sanctum token
-        $request->user()->Route::currentAccessToken()->delete();
-        return response()->json(['message' => 'Logged out']);
+        $request->user()?->currentAccessToken()?->delete();
+
+        return response()->json([
+            'message' => 'Logged out successfully.'
+        ]);
     }
 }

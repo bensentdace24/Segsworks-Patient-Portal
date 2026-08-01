@@ -13,7 +13,11 @@ class MedicalRecordController extends Controller
      */
     public function index()
     {
-        //
+        return response()->json(
+            MedicalRecord::with('patient')
+                ->latest('recorded_at')
+                ->get()
+        );
     }
 
     /**
@@ -37,7 +41,9 @@ class MedicalRecordController extends Controller
      */
     public function show(MedicalRecord $medicalRecord)
     {
-        //
+        return response()->json(
+            $medicalRecord->load('patient')
+        );
     }
 
     /**

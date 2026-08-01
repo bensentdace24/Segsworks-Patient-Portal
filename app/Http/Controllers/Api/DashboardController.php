@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\Patient;
 use Illuminate\Http\Request;
+use App\Models\User;
+use App\Models\MedicalRecord;
 
 class DashboardController extends Controller
 {
@@ -13,17 +15,36 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role === 'doctor') {
+        if ($user->role === 'admin') {
+
             return response()->json([
                 'staff' => $user,
-                'my_upcoming_appointments' => $user->doctorAppointments()
-                    ->with('patient')
-                    ->where('scheduled_at', '>=', now())
-                    ->orderBy('scheduled_at')
-                    ->get(),
+
+                'total_users' => User::count(),
+                'total_patients' => Patient::count(),
+                'total_appointments' => Appointment::count(),
+                'total_records' => MedicalRecord::count(),
+
                 'notifications' => $this->getNotifications($user),
             ]);
         }
+
+        if ($user->role === 'doctor') {
+            $doctorName = strtolower(trim($user->name));
+
+            return response()->json([
+                'staff' => $user,
+
+                'my_upcoming_appointments' => Appointment::with('patient')
+                    ->whereRaw('LOWER(TRIM(doctor_name)) = ?', [$doctorName])
+                    ->whereNotIn('status', ['completed', 'cancelled'])
+                    ->orderBy('scheduled_at')
+                    ->get(),
+
+                'notifications' => $this->getNotifications($user),
+            ]);
+        }
+
 
         return response()->json([
             'staff' => $user,
@@ -44,9 +65,10 @@ class DashboardController extends Controller
             ->whereBetween('scheduled_at', [now(), now()->addHour()]);
 
         if ($user->role === 'doctor') {
-            $upcomingQuery->where('doctor_id', $user->id);
+            $upcomingQuery->whereRaw('LOWER(TRIM(doctor_name)) = ?', [
+                strtolower(trim($user->name)),
+            ]);
         }
-
         foreach ($upcomingQuery->get() as $appt) {
             $notifications[] = [
                 'type' => 'reminder',
@@ -58,7 +80,9 @@ class DashboardController extends Controller
             ->where('status', 'pending');
 
         if ($user->role === 'doctor') {
-            $pendingTodayQuery->where('doctor_id', $user->id);
+            $pendingTodayQuery->whereRaw('LOWER(TRIM(doctor_name)) = ?', [
+                strtolower(trim($user->name)),
+            ]);
         }
 
         $pendingToday = $pendingTodayQuery->count();
