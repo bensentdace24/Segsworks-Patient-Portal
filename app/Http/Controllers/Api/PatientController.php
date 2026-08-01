@@ -134,6 +134,21 @@ class PatientController extends Controller
      */
     public function destroy(Patient $patient)
     {
-        //
+        $hasRelatedRecords =
+            $patient->appointments()->exists() ||
+            $patient->cases()->exists() ||
+            $patient->medicalRecords()->exists();
+
+        if ($hasRelatedRecords) {
+            return response()->json([
+                'message' => 'This patient cannot be deleted because they already have appointments, consultations, or medical records.',
+            ], 422);
+        }
+
+        $patient->delete();
+
+        return response()->json([
+            'message' => 'Patient deleted successfully.',
+        ]);
     }
 }
