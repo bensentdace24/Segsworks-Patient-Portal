@@ -13,6 +13,24 @@ class ConsultationController extends Controller
 {
     public function store(StoreConsultationRequest $request, Appointment $appointment)
     {
+        $user = $request->user();
+
+        $doctorName = preg_replace(
+            '/^Dr\.?\s+/i',
+            '',
+            trim($user->name)
+        );
+
+        $assignedDoctor = strtolower(trim((string) $appointment->doctor_name));
+
+        abort_unless(
+            $user->role === 'doctor'
+                && $assignedDoctor === strtolower($doctorName),
+            403,
+            'This appointment is not assigned to you.'
+        );
+
+
         DB::transaction(function () use ($request, $appointment) {
 
             $appointment->update([

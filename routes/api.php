@@ -17,8 +17,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
-    Route::middleware('role:receptionist,admin')->group(function () {
-        Route::post('/patients', [PatientController::class, 'store']);
+    Route::middleware(
+        'role:receptionist,doctor,nurse,admin'
+    )->group(function () {
+        Route::get('/patients/{patient}', [PatientController::class, 'show']);
         Route::put('/patients/{patient}', [PatientController::class, 'update']);
 
         Route::post('/appointments', [AppointmentController::class, 'store']);

@@ -13,15 +13,31 @@ class AppointmentController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Appointment::with('patient');
+        $user = $request->user();
 
-        if ($patientId = $request->query('patient_id')) {
-            $query->where('patient_id', $patientId);
+        $query = Appointment::query()->with('patient');
+
+        if ($user->role === 'doctor') {
+            $doctorName = preg_replace(
+                '/^Dr\.?\s+/i',
+                '',
+                trim($user->name)
+            );
+
+            $query->whereRaw(
+                'LOWER(TRIM(COALESCE(doctor_name, ""))) = ?',
+                [strtolower($doctorName)]
+            );
         }
 
-        return response()->json($query->latest('scheduled_at')->get());
-    }
+        if ($request->filled('patient_id')) {
+            $query->where('patient_id', $request->query('patient_id'));
+        }
 
+        return response()->json(
+            $query->orderByDesc('scheduled_at')->get()
+        );
+    }
     public function create()
     {
         //
@@ -45,9 +61,10 @@ class AppointmentController extends Controller
 
     public function show(Appointment $appointment)
     {
-        return response()->json($appointment->load(['patient', 'doctor']));
+        return response()->json(
+            $appointment->load(['patient', 'patientCase'])
+        );
     }
-
     public function edit(Appointment $appointment)
     {
         //

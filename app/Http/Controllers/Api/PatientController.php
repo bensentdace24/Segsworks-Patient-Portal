@@ -14,14 +14,36 @@ class PatientController extends Controller
      */
     public function index(Request $request)
     {
+        $user = $request->user();
+
         $query = Patient::query();
 
-        if ($search = $request->query('search')) {
-            $query->where('full_name', 'like', "%{$search}%")
-                ->orWhere('phn', 'like', "%{$search}%");
+        if ($user->role === 'doctor') {
+            $doctorName = preg_replace(
+                '/^Dr\.?\s+/i',
+                '',
+                trim($user->name)
+            );
+
+            $query->whereHas('appointments', function ($appointmentQuery) use ($doctorName) {
+                $appointmentQuery->whereRaw(
+                    'LOWER(TRIM(doctor_name)) = ?',
+                    [strtolower($doctorName)]
+                );
+            });
         }
 
-        return response()->json($query->latest()->get());
+        if ($search = $request->query('search')) {
+            $query->where(function ($searchQuery) use ($search) {
+                $searchQuery
+                    ->where('full_name', 'like', "%{$search}%")
+                    ->orWhere('phn', 'like', "%{$search}%");
+            });
+        }
+
+        return response()->json(
+            $query->latest()->get()
+        );
     }
     /**
      * Show the form for creating a new resource.
@@ -46,11 +68,33 @@ class PatientController extends Controller
      * Display the specified resource.
      */
     // PatientController@show — add eager loading
-    public function show(Patient $patient)
+    public function show(Request $request, Patient $patient)
     {
+        $user = $request->user();
+
+        if ($user->role === 'doctor') {
+            $doctorName = preg_replace(
+                '/^Dr\.?\s+/i',
+                '',
+                trim($user->name)
+            );
+
+            $isAssigned = $patient->appointments()
+                ->whereRaw(
+                    'LOWER(TRIM(COALESCE(doctor_name, ""))) = ?',
+                    [strtolower($doctorName)]
+                )
+                ->exists();
+
+            abort_unless(
+                $isAssigned,
+                403,
+                'You are not authorized to view this patient.'
+            );
+        }
+
         return response()->json(
             $patient->load([
-                'appointments',
                 'appointments.patientCase',
                 'medicalRecords',
                 'createdBy:id,name',
