@@ -28,8 +28,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/doctors', [DoctorController::class, 'index']);
     });
 
-    // Front desk / admin can manage patients and appointments
-    Route::middleware('role:receptionist,admin')->group(function () {
+    // Front desk, nurses, and admins can manage patients and appointments.
+    Route::middleware('role:receptionist,nurse,admin')->group(function () {
         Route::post('/patients', [PatientController::class, 'store']);
         Route::put('/patients/{patient}', [PatientController::class, 'update']);
         Route::delete('/patients/{patient}', [PatientController::class, 'destroy']);
