@@ -7,10 +7,12 @@ use App\Models\Appointment;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Requests\UpdateAppointmentRequest;
+use Illuminate\Support\Facades\DB;
 
 
 class AppointmentController extends Controller
 {
+    /** List appointments; doctors are restricted to appointments assigned to them. */
     public function index(Request $request)
     {
         $user = $request->user();
@@ -38,39 +40,40 @@ class AppointmentController extends Controller
             $query->orderByDesc('scheduled_at')->get()
         );
     }
-    public function create()
-    {
-        //
-    }
-
+    /** Create an appointment and its initial patient case as one atomic operation. */
     public function store(StoreAppointmentRequest $request)
     {
         $this->authorize('create', Appointment::class);
 
-        $appointment = Appointment::create($request->validated() + [
-            'status' => 'pending',
-            'created_by' => $request->user()->id, // audit trail: which nurse booked it
-        ]);
+        // A transaction prevents an appointment from existing without its case.
+        $appointment = DB::transaction(function () use ($request) {
+            $appointment = Appointment::create($request->validated() + [
+                'status' => 'pending',
+                'created_by' => $request->user()->id,
+            ]);
 
-        #tthis needs created_by added to appointment to add enew column
-        $appointment->patientCase()->create([
-            'patient_id' => $appointment->patient_id,
-            'opened_by' => $request->user()->id,
-        ]);
+            $appointment->patientCase()->create([
+                'patient_id' => $appointment->patient_id,
+                'opened_by' => $request->user()->id,
+            ]);
+
+            return $appointment;
+        });
+
+        return response()->json(
+            $appointment->load(['patient', 'patientCase']),
+            201
+        );
     }
 
+    /** Return one appointment together with its patient and clinical case. */
     public function show(Appointment $appointment)
     {
         return response()->json(
             $appointment->load(['patient', 'patientCase'])
         );
     }
-    public function edit(Appointment $appointment)
-    {
-        //
-    }
-
-
+    /** Validate and update appointment details or status. */
     public function update(UpdateAppointmentRequest $request, Appointment $appointment)
     {
         $this->authorize('update', $appointment);
@@ -79,6 +82,7 @@ class AppointmentController extends Controller
 
         return response()->json($appointment->load(['patient', 'doctor']));
     }
+    /** Permanently delete an appointment after route-level role authorization. */
     public function destroy(Appointment $appointment)
     {
         $appointment->delete();

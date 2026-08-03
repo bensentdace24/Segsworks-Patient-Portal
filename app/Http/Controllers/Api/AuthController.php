@@ -10,7 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-
+    /** Validate staff credentials and issue a Sanctum API token to the Vue frontend. */
     public function login(Request $request)
     {
         $request->validate([
@@ -33,6 +33,7 @@ class AuthController extends Controller
         ]);
     }
 
+    /** Revoke only the token used by the current session, then confirm logout. */
     public function logout(Request $request)
     {
         $request->user()?->currentAccessToken()?->delete();

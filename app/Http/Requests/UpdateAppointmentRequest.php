@@ -11,7 +11,8 @@ class UpdateAppointmentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // gated by AppointmentPolicy at the controller/route level
+        // AppointmentPolicy and route middleware handle authorization separately.
+        return true;
     }
 
     public function rules(): array
@@ -25,9 +26,9 @@ class UpdateAppointmentRequest extends FormRequest
         ];
     }
 
+    /** Prevent an edited appointment from overlapping another appointment. */
     public function withValidator(Validator $validator): void
     {
-        //   $validator->after(function (Validator $validator) {
         if (! $this->filled('doctor_id') || ! $this->filled('scheduled_at')) {
             return;
         }
@@ -53,6 +54,5 @@ class UpdateAppointmentRequest extends FormRequest
                 'This doctor already has an appointment at that time.'
             );
         }
-        // });
     }
 }

@@ -11,12 +11,13 @@ use App\Models\MedicalRecord;
 
 class DashboardController extends Controller
 {
+    /** Return dashboard data shaped specifically for the authenticated user's role. */
     public function index(Request $request)
     {
         $user = $request->user();
 
         if ($user->role === 'admin') {
-
+            // Admins receive system-wide totals plus operational notifications.
             return response()->json([
                 'staff' => $user,
 
@@ -30,6 +31,7 @@ class DashboardController extends Controller
         }
 
         if ($user->role === 'doctor') {
+            // Doctors receive only upcoming appointments assigned to their name.
             $doctorName = strtolower(trim($user->name));
 
             return response()->json([
@@ -44,8 +46,7 @@ class DashboardController extends Controller
                 'notifications' => $this->getNotifications($user),
             ]);
         }
-
-
+        // Nurses and receptionists receive patient totals and today's schedule.
         return response()->json([
             'staff' => $user,
             'total_patients' => Patient::count(),
@@ -56,10 +57,12 @@ class DashboardController extends Controller
         ]);
     }
 
+    /** Build live reminders from appointment dates and statuses instead of stored messages. */
     private function getNotifications($user): array
     {
         $notifications = [];
 
+        // Find confirmed appointments beginning within the next hour.
         $upcomingQuery = Appointment::with('patient')
             ->where('status', 'confirmed')
             ->whereBetween('scheduled_at', [now(), now()->addHour()]);
@@ -76,6 +79,7 @@ class DashboardController extends Controller
             ];
         }
 
+        // Count today's appointments that staff still need to confirm.
         $pendingTodayQuery = Appointment::whereDate('scheduled_at', today())
             ->where('status', 'pending');
 

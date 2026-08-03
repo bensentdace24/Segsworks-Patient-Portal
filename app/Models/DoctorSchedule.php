@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DoctorSchedule extends Model
 {
+    /** Doctor availability fields accepted by Eloquent. */
     protected $fillable = [
         'doctor_id',
         'day_of_week',
@@ -19,15 +20,13 @@ class DoctorSchedule extends Model
         'is_active' => 'boolean',
     ];
 
+    /** Doctor account that owns this recurring schedule. */
     public function doctor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'doctor_id');
     }
 
-    /**
-     * Whether a given Carbon datetime falls inside this schedule's
-     * day-of-week + time window.
-     */
+    /** Check whether a date/time falls on the active day and time window. */
     public function coversDateTime(\Illuminate\Support\Carbon $dateTime): bool
     {
         if (! $this->is_active || (int) $dateTime->dayOfWeek !== (int) $this->day_of_week) {

@@ -6,12 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Patient;
 use Illuminate\Http\Request;
 use App\Http\Requests\StorePatientRequest;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PatientController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    /** List/search patients; doctors receive only patients assigned to them. */
     public function index(Request $request)
     {
         $user = $request->user();
@@ -19,6 +19,7 @@ class PatientController extends Controller
         $query = Patient::query();
 
         if ($user->role === 'doctor') {
+            // Normalize an optional "Dr." prefix before matching appointment data.
             $doctorName = preg_replace(
                 '/^Dr\.?\s+/i',
                 '',
@@ -34,6 +35,7 @@ class PatientController extends Controller
         }
 
         if ($search = $request->query('search')) {
+            // Search works with either a patient name or the generated PHN.
             $query->where(function ($searchQuery) use ($search) {
                 $searchQuery
                     ->where('full_name', 'like', "%{$search}%")
@@ -45,34 +47,24 @@ class PatientController extends Controller
             $query->latest()->get()
         );
     }
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
+    /** Validate and register a patient while recording which staff member created it. */
     public function store(StorePatientRequest $request)
     {
         $this->authorize('create', Patient::class);
 
-        $patient = Patient::create($request->validated() + ['created_by' => $request->user()->id]);
+        $patient = DB::transaction(fn() => Patient::create(
+            $request->validated() + ['created_by' => $request->user()->id]
+        ));
 
         return response()->json($patient, 201);
     }
-    /**
-     * Display the specified resource.
-     */
-    // PatientController@show — add eager loading
+    /** Return a complete patient profile with visits, cases, records, and creator. */
     public function show(Request $request, Patient $patient)
     {
         $user = $request->user();
 
         if ($user->role === 'doctor') {
+            // Record-level check: doctors cannot open an unassigned patient's profile.
             $doctorName = preg_replace(
                 '/^Dr\.?\s+/i',
                 '',
@@ -102,17 +94,7 @@ class PatientController extends Controller
         );
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Patient $patient)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
+    /** Update patient demographics while preventing duplicate identities . */
     public function update(Request $request, Patient $patient)
     {
         $validated = $request->validate([
@@ -124,21 +106,50 @@ class PatientController extends Controller
             'blood_type'    => 'nullable|string',
         ]);
 
+        #check if the patient already exists with the same full name and date of birth
+        // Exclude the current patient while checking name + birth-date uniqueness.
+        $normalizedName = strtolower(trim($validated['full_name']));
+        $duplicateIdentity = Patient::query()
+            ->whereKeyNot($patient->id)
+            ->whereRaw('LOWER(TRIM(full_name)) = ?', [$normalizedName])
+            ->whereDate('date_of_birth', $validated['date_of_birth'])
+            ->exists();
+
+        if ($duplicateIdentity) {
+            throw ValidationException::withMessages([
+                'full_name' => ['A patient with the same full name and date of birth already exists.'],
+            ]);
+        }
+
+        // A non-empty phone number may belong to only one patient.
+        if (! empty($validated['phone'])) {
+            $duplicatePhone = Patient::query()
+                ->whereKeyNot($patient->id)
+                ->where('phone', trim($validated['phone']))
+                ->exists();
+
+            if ($duplicatePhone) {
+                throw ValidationException::withMessages([
+                    'phone' => ['This phone number is already assigned to another patient.'],
+                ]);
+            }
+        }
+
         $patient->update($validated);
 
         return response()->json($patient);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    /** Delete only patients with no dependent clinical history. */
     public function destroy(Patient $patient)
     {
+        #check if the patient has any related records (appointments, cases, or medical records)
         $hasRelatedRecords =
             $patient->appointments()->exists() ||
             $patient->cases()->exists() ||
             $patient->medicalRecords()->exists();
 
+        // Preserve referential and clinical history instead of cascading a user action.
         if ($hasRelatedRecords) {
             return response()->json([
                 'message' => 'This patient cannot be deleted because they already have appointments, consultations, or medical records.',

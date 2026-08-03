@@ -11,6 +11,7 @@ class StoreAppointmentRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        // Route middleware and AppointmentPolicy decide which roles may create.
         return true;
     }
 
@@ -29,6 +30,7 @@ class StoreAppointmentRequest extends FormRequest
         ];
     }
 
+    /** Add scheduling conflict and doctor-availability checks after field validation. */
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
@@ -39,16 +41,19 @@ class StoreAppointmentRequest extends FormRequest
             $doctorId = $this->input('doctor_id');
             $scheduledAt = Carbon::parse($this->input('scheduled_at'));
 
+            // Keep a 30-minute buffer around another non-cancelled appointment.
             if ($this->doctorHasConflict($doctorId, $scheduledAt)) {
                 $validator->errors()->add('scheduled_at', 'This doctor already has an appointment at that time.');
             }
 
+            // Reject leave periods and times outside configured working hours.
             if (! $this->doctorIsAvailable($doctorId, $scheduledAt)) {
                 $validator->errors()->add('scheduled_at', 'This time falls outside the doctor\'s scheduled availability.');
             }
         });
     }
 
+    /** Determine whether the doctor already has a nearby appointment. */
     protected function doctorHasConflict(int $doctorId, Carbon $scheduledAt): bool
     {
         return Appointment::where('doctor_id', $doctorId)
@@ -60,6 +65,7 @@ class StoreAppointmentRequest extends FormRequest
             ->exists();
     }
 
+    /** Check time off and optional recurring schedules for the selected doctor. */
     protected function doctorIsAvailable(int $doctorId, Carbon $scheduledAt): bool
     {
         $doctor = \App\Models\User::find($doctorId);

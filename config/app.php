@@ -65,7 +65,9 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    // Appointment inputs are entered in Philippine local time. Laravel will
+    // serialize them with the correct UTC offset for the Vue client.
+    'timezone' => env('APP_TIMEZONE', 'Asia/Manila'),
 
     /*
     |--------------------------------------------------------------------------

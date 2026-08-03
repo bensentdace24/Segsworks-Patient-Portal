@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class ConsultationController extends Controller
 {
+    /** Complete an assigned appointment and save all resulting clinical information. */
     public function store(StoreConsultationRequest $request, Appointment $appointment)
     {
         $user = $request->user();
@@ -23,6 +24,7 @@ class ConsultationController extends Controller
 
         $assignedDoctor = strtolower(trim((string) $appointment->doctor_name));
 
+        // Prevent a doctor from consulting an appointment assigned to someone else.
         abort_unless(
             $user->role === 'doctor'
                 && $assignedDoctor === strtolower($doctorName),
@@ -31,12 +33,14 @@ class ConsultationController extends Controller
         );
 
 
+        // All updates succeed together or Laravel rolls everything back.
         DB::transaction(function () use ($request, $appointment) {
 
             $appointment->update([
                 'status' => 'completed',
             ]);
 
+            // Reuse the case opened during booking, or create it for older data.
             $patientCase = $appointment->patientCase;
 
             if (! $patientCase) {
@@ -56,6 +60,7 @@ class ConsultationController extends Controller
                 'completed_by' => $request->user()->id,
             ]);
 
+            // Preserve a permanent readable summary in the medical-records module.
             MedicalRecord::create([
                 'patient_id' => $appointment->patient_id,
                 'record_type' => 'Consultation',

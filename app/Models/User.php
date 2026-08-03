@@ -31,7 +31,7 @@ class User extends Authenticatable
         ];
     }
 
-    #doctors apppointment
+    /** Appointments linked to this user through doctor_id. */
     public function doctorAppointments(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Appointment::class, 'doctor_id');
@@ -44,19 +44,19 @@ class User extends Authenticatable
     }
 
 
-    #schedule of the doctor
+    /** Recurring availability windows configured for a doctor. */
     public function schedules(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(DoctorSchedule::class, 'doctor_id');
     }
 
-    #doctors timeout
+    /** Leave or unavailable periods configured for a doctor. */
     public function timeOff(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(DoctorTimeOff::class, 'doctor_id');
     }
 
-    #created patients receptionist og admin
+    /** Patients registered by this staff account. */
     public function createdPatients()
     {
         return $this->hasMany(Patient::class, 'created_by');

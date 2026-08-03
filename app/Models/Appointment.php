@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Appointment extends Model
 {
+    /** Appointment fields accepted from validated frontend requests. */
     protected $fillable = [
         'patient_id',
         'doctor_name',
@@ -20,24 +21,25 @@ class Appointment extends Model
         'scheduled_at' => 'datetime',
     ];
 
-    // Appointment.php — add
+    /** Clinical case opened automatically when this appointment is booked. */
     public function patientCase()
     {
         return $this->hasOne(PatientCase::class, 'appointment_id');
     }
 
-    #Doctors relationship
+    /** Optional local user relationship when a doctor_id is available. */
     public function doctor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'doctor_id');
     }
 
+    /** Patient scheduled for this appointment. */
     public function patient(): BelongsTo
     {
         return $this->belongsTo(Patient::class);
     }
 
-    #to see kinsa ang nag buhat sa appointment
+    /** Staff account that originally booked the appointment. */
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

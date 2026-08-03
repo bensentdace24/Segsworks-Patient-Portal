@@ -12,6 +12,7 @@ class StoreConsultationRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        // The doctor route and controller assignment check enforce access.
         return true;
     }
 
@@ -20,6 +21,7 @@ class StoreConsultationRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
+    /** Require the core clinical findings while keeping treatment fields optional. */
     public function rules(): array
     {
         return [
